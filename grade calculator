@@ -1,0 +1,25 @@
+#include <stdio.h>
+
+// grade system - marks given and percentage given
+int main() {
+    int maths;
+    float science, english;
+    float percentage;
+
+    printf(":= Enter your subjects marks :=\n");
+
+    printf("Enter your Maths marks: ");
+    scanf("%d", &maths);
+
+    printf("Enter your Science marks: ");
+    scanf("%f", &science);
+
+    printf("Enter your English marks: ");
+    scanf("%f", &english);
+
+    percentage = (maths + science + english) / 300.0 * 100;
+
+    printf("The percentage of the student is: %.2f%%\n", percentage);
+
+    return 0;
+}
