@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <stdbool.h>
+int main()
+{
+    printf("====CALCULATOR====\n");
+    int choice;
+
+    	while (true) 
+	{
+        	printf("\nPlease enter your choice:\n"
+               "1. Addition\n"
+               "2. Subtraction\n"
+               "3. Multiplication\n"
+               "4. Division\n"
+               "5. Exit\n");
+        	scanf("%d", &choice);
+        	if (choice==1)
+		{
+            		int a,b;
+		        printf("Enter two numbers:");
+		        scanf("%d%d",&a,&b);
+		        int x=a+b;
+		        printf("%d",x);
+		        printf("Enter the sum of two numbers:%d",x);
+		}
+		else if(choice==2)
+		{
+
+		            int a,b;
+            printf("Enter two numbers:");
+            scanf("%d%d",&a,&b);
+            int x=a-b;
+            printf("The difference of the two numbers is :%d",x);
+            }
+        else if(choice==3){
+            int a,b;
+            printf("Enter multiplication of two numbers:");
+            scanf("%d%d",&a,&b);
+            int x=a*b;
+            printf("The product of two numbers :%d",x);
+        }
+        else if(choice==4){
+            int a,b;
+            printf("Enter the two numbers:");
+            scanf("%d%d",&a,&b);
+            if (b!=0){
+                float x=a/b;
+                printf("The division of the two numbers is:%f",x);
+                
+            }else{
+                printf("Zero divsion error,please enter new data again.");
+            }
+        }
+        else if(choice==5){
+            printf("Thank You for trying our calculator.");
+            break;
+
+        }
+        else{
+            break;
+            printf("Thank you for using our laptop !");}
+        }
+    return 0;
+}
