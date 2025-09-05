@@ -1,0 +1,12 @@
+#include <stdio.h>
+void write(){
+    FILE*fptr;
+    fptr=fopen("Cpractice.txt","w");
+    fprintf(fptr,"Hello my name is kashvi pundir .\n This is HP Z book laptop .\n Today is 3rd September.\n");
+    fclose(fptr);
+    return;
+}
+int main(){
+    write();
+    return 0;
+}
