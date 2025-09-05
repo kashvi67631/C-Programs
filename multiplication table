@@ -1,0 +1,12 @@
+#include <stdio.h>
+int main(){
+    // a program to print the multiplication table of a number entered by the user.
+    int m;
+    printf("Enter a number whose multiplication is required");
+    scanf("%d",&m);
+    int i;
+    for(i=0;i<=10;i++){
+        printf("%d * %d =%d",i,m,i*m);
+        printf("\n");
+    }
+}
