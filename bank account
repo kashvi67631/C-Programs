@@ -1,0 +1,63 @@
+#include <stdio.h>
+
+// Deposit function
+void deposit(int *balance, int amnt) {
+    *balance = *balance + amnt;
+    printf("The updated balance in the bank is: %d\n", *balance);
+}
+
+// Withdraw function
+void withdraw(int *balance, int amnt) {
+    if (amnt > *balance) {
+        printf("Insufficient balance!\n");
+    } else {
+        *balance = *balance - amnt;
+        printf("The updated balance in the bank is: %d\n", *balance);
+    }
+}
+
+// Balance check function
+void check(int balance) {
+    printf("The Balance in your account is: %d\n", balance);
+}
+
+int main() {
+    int balance;
+    printf("Kindly enter current balance of your account: ");
+    scanf("%d", &balance);
+
+    int choice;
+    while (1) {
+        printf("\n=== Welcome to PNB! ===\n");
+        printf("1. Deposit\n");
+        printf("2. Withdraw\n");
+        printf("3. Balance\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        if (choice == 1) {
+            int amnt;
+            printf("Enter the amount to deposit: ");
+            scanf("%d", &amnt);
+            deposit(&balance, amnt);
+        } 
+        else if (choice == 2) {
+            int amnt;
+            printf("Enter the amount to withdraw: ");
+            scanf("%d", &amnt);
+            withdraw(&balance, amnt);
+        } 
+        else if (choice == 3) {
+            check(balance);
+        } 
+        else if (choice == 4) {
+            printf("Thanks for using PNB!\n");
+            break;
+        } 
+        else {
+            printf("Invalid choice! Please try again.\n");
+        }
+    }
+    return 0;
+}
