@@ -3,6 +3,8 @@
 int main(){
     printf("Welcome to the MultiRestaurant!\n");
     printf("Here's the restaurant's menu kindly select one =\n");
+
+while (true){
     int food;
     printf(
     "1.===North Indian===\n"
@@ -18,12 +20,10 @@ int main(){
     "b) Springroll- 80rupee\n"
     "c) Chowmene- 50 rupee\n");
     scanf("%d",&food);
-while (true){
     switch (food){
         case 1:{
         printf("Preparing North Indian Dish for you....\n");
         printf("Kindly enter the quantity too-\n");
-        while (true){
         int roti=0,dal=0,rice=0;
         printf("Enter the number of roti-\n");
         scanf("%d",&roti);
@@ -32,20 +32,12 @@ while (true){
         printf("Enter the number of bowl of chawal-\n");
         scanf("%d",&rice);
         //bill
-        char ch;
-        printf("Do you want to enter more ?-y/n\n");
-        scanf("%c",&ch);
-        if (ch=='n'){
-            break;
-        }
         int billn=roti*15+dal*20+rice*20;
         printf("The bill amount is %d\n",billn);
-        break;
-    }
+        break;}
         case 2:{
         printf("Preparing South Indian Dish for you....\n");
         printf("Kindly enter the quantity too:\n");
-        while (true){
         int Dosa=0,idli=0,Vada=0;
         printf("Enter the number of dosa-\n");
         scanf("%d",&Dosa);
@@ -53,22 +45,13 @@ while (true){
         scanf("%d",&idli);
         printf("Enter the number of bowl of vada-\n");
         scanf("%d",&Vada);
-        //bill
-        char ch;
-        printf("Do you want to enter more ?-y/n\n");
-        scanf("%c",&ch);
-        if (ch=='n'){
-            break;
-        }
         int bills=Dosa*80+idli*50+Vada*50;
         printf("The bill amount is %d\n",bills);
-        }
-        break;
-    }
+        break;}
+    
         case 3:{
         printf("Preparing Chinese Dish for you....\n");
         printf("Kindly enter the quantity too-\n");
-        while (true){
         int momo=0,springroll=0,chowmene=0;
         printf("Enter the number of momo-\n");
         scanf("%d",&momo);
@@ -76,26 +59,16 @@ while (true){
         scanf("%d",&springroll);
         printf("Enter the number of bowl of chowmene-\n");
         scanf("%d",&chowmene);
-        //bill
-        char ch;
-        printf("Do you want to enter more ?-y/n\n");
-        scanf("%c",&ch);
-        if (ch=='n'){
-            break;
-        }
         int billc=momo*70+springroll*80+chowmene*50;
         printf("The bill amount is %d",billc);
-        }
-        break;
-    }   
+        break;}
     default:
     printf("Invalid Choice!");
 }
 
-}
 char ch;
 printf("Do you want to have more?-y/n");
-scanf("%c",&ch);
+scanf("  %c",&ch);
 if (ch=='n'){
     break;
 }
