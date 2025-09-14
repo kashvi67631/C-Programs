@@ -3,21 +3,20 @@
 #include <time.h>
 #include <string.h>
 void rolldice(){
-    int dice=(rand()%10)+1; 
-    printf("%d\n",dice);   
+    int dice=(rand()%6)+1; 
+        printf("%d\n",dice);   
+
 }
 int main(){
     printf("===Welcome to Roll The Dice===\n");
     srand(time(0));
     while (1){    
         char ch;
-        printf("enter n / y to roll the dice\n");
-        scanf("%c/n",&ch);
+        printf("enter n / y to roll the dice \n");
+        scanf(" %c",&ch);
+        rolldice();
     if (ch=='n'){
         break;
-    }
-    else{
-        rolldice();
     }}
     return 0;
 }
