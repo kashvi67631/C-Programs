@@ -1,0 +1,125 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+//student record
+void add(){
+    FILE *fptr;
+    fptr=fopen("studentrecords.txt","a");
+    if (fptr==NULL){
+        printf("Error in generating the file !");
+    }
+    int roll,em,mm,sm;
+    char name[100];
+    while (1){
+        printf("enter the name of student\n");
+        scanf(" %s",name);
+        printf("enter the roll number of the student\n");
+        scanf(" %d",&roll);
+        printf("enter the marks of english\n");
+        scanf(" %d",&em);
+        printf("enter the marks of maths\n");
+        scanf(" %d",&mm);
+        printf("enter the marks of science\n");
+        scanf(" %d",&sm);
+        int total=em+mm+sm;
+        fprintf(fptr,
+                "Name=%s\n"
+                "Roll Number=%d\n"
+                "Total Marks=%d\n",name,roll,total
+        );
+        char ch;
+        printf("Do you want to enter more records?-y/n");
+        scanf(" %c",&ch);
+        if (tolower(ch)=='n'){
+            break;
+        }
+    }
+    fclose(fptr);
+}
+void search(){
+    FILE *fptr;
+    fptr=fopen("studentrecords.txt","r");
+    if (fptr==NULL){
+        printf("Error in generating the file !\n");
+    }
+    int roll, em, mm, sm, total;
+    char name[100];
+    int searchroll;
+    int found = 0;
+    printf("Enter the roll number to be searched:-\n");
+    scanf("%d",&searchroll);
+    while (fscanf(fptr,"Name=%s\nRoll Number=%d\nTotal Marks=%d\n",name,&roll,&total)==3)
+        if (roll==searchroll){
+        printf("The name of the student is %s\n",name);
+        printf("The roll number of the student is %d\n",roll);
+        printf("The total marks obtained by student is %d\n",total);
+        found=1;
+        break;}
+    }
+    fclose(fptr);
+}
+void result(){
+    FILE *fptr;
+    fptr=fopen("studentrecords.txt","r");
+    //percentage and grading
+    int roll,total,em,mm,sm;
+    total=(em+mm+sm);
+    float percentage=(total/300.0)*100;
+    printf("%f",percentage);
+    if (90<=percentage && percentage<=100){
+        printf("A Grade");
+    }
+    else if(80<=percentage && percentage<90){
+        printf("B Grade");
+    }
+    else if(70<=percentage && percentage<80){
+        printf("C Grade");
+    }
+    else if(60<=percentage && percentage<70){
+        printf("D Grade");
+    }
+    else{
+        printf("E Grade");
+    }
+    printf("%f.2",percentage);
+}
+void astud(){
+    FILE *fptr;
+    fptr=fopen("studnetrecords.txt","r");
+    char names[100];
+    while (fgets(names,100,fptr)){
+        printf(fptr,names);
+    }
+}
+int main(){
+    printf("Welcome to Student's Record makes\n");
+    printf("How can we help you ?-\n");
+    int i;
+    while(1){
+    printf(
+        "1.Add student records\n"
+        "2.Calculate result-percentage obtained and the grade\n"
+        "3.Search the student by roll number\n"
+        "4.Display all students\n"
+        "5.Exit\n"
+    );
+    scanf(" %d",&i);
+    switch (i){
+        case 1:
+        add();
+        break;
+        case 2:
+        result();
+        break;
+        case 3:
+        search();
+        break;
+        case 4:
+        astud();
+        break;
+        case 5:
+        return 0;
+        default: printf("Invalid Choice");
+    }
+}
+}
