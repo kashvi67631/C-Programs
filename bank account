@@ -1,17 +1,17 @@
 #include <stdio.h>
 
 // Deposit function
-void deposit(int *balance, int amnt) {
-    *balance = *balance + amnt;
+void deposit(int balance, int amnt) {
+    balance = balance + amnt;
     printf("The updated balance in the bank is: %d\n", *balance);
 }
 
 // Withdraw function
 void withdraw(int *balance, int amnt) {
-    if (amnt > *balance) {
+    if (amnt > balance) {
         printf("Insufficient balance!\n");
     } else {
-        *balance = *balance - amnt;
+        balance = balance - amnt;
         printf("The updated balance in the bank is: %d\n", *balance);
     }
 }
@@ -61,3 +61,4 @@ int main() {
     }
     return 0;
 }
+
