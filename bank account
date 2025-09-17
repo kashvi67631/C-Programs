@@ -1,24 +1,28 @@
 #include <stdio.h>
 
 // Deposit function
-void deposit(int balance, int amnt) {
+int deposit(int balance, int amnt) {
     balance = balance + amnt;
-    printf("The updated balance in the bank is: %d\n", *balance);
+    printf("The updated balance in the bank is: %d\n", balance);
+    return balance;
 }
 
 // Withdraw function
-void withdraw(int *balance, int amnt) {
+int withdraw(int balance, int amnt) {
     if (amnt > balance) {
         printf("Insufficient balance!\n");
     } else {
         balance = balance - amnt;
-        printf("The updated balance in the bank is: %d\n", *balance);
+        printf("The updated balance in the bank is: %d\n", balance);
     }
+        return balance;
+
 }
 
 // Balance check function
-void check(int balance) {
+int check(int balance) {
     printf("The Balance in your account is: %d\n", balance);
+        return balance;
 }
 
 int main() {
@@ -40,13 +44,13 @@ int main() {
             int amnt;
             printf("Enter the amount to deposit: ");
             scanf("%d", &amnt);
-            deposit(&balance, amnt);
+            balance=deposit(balance, amnt);
         } 
         else if (choice == 2) {
             int amnt;
             printf("Enter the amount to withdraw: ");
             scanf("%d", &amnt);
-            withdraw(&balance, amnt);
+            balance=withdraw(balance, amnt);
         } 
         else if (choice == 3) {
             check(balance);
@@ -61,4 +65,3 @@ int main() {
     }
     return 0;
 }
-
