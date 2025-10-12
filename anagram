@@ -1,0 +1,39 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdbool.h>
+int main(){
+    //anagrams - same words but different order
+    char str1[100],str2[100];
+    printf("1st text:");
+    fgets(str1, sizeof(str1), stdin);
+    printf("\n2nd text:");
+    fgets(str2, sizeof(str2), stdin);
+    int f1[26]={0},f2[26]={0};
+    int l1=strlen(str1),l2=strlen(str2);
+    for (int i=0;str1[i]!='\0';i++){
+        if(isalpha(str1[i])){
+            f1[tolower(str1[i])-'a']++;
+        }
+    }
+    for (int i = 0; str2[i] != '\0'; i++) {
+        if (isalpha(str2[i])) {
+            f2[tolower(str2[i]) - 'a']++;
+        }
+    }
+    int isanagram=1;
+    for (int i = 0; i < 26; i++) {
+    if(f1[i]!=f2[i]){
+        isanagram=0;
+        break;
+    }
+    }
+    if (isanagram){
+        printf("It is an anagram.");
+    }
+    else{
+        printf("\nIt is not an anagram.");
+    }
+    return 0;
+}
