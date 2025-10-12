@@ -1,0 +1,23 @@
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char str[] = "education";
+    int len = strlen(str);
+    char neww[100];   
+    int j = 0;        
+
+    for (int i = 0; i < len; i++) {
+        // if not a vowel, copy it
+        if (!(str[i]=='a' || str[i]=='e' || str[i]=='i' || str[i]=='o' || str[i]=='u' ||
+              str[i]=='A' || str[i]=='E' || str[i]=='I' || str[i]=='O' || str[i]=='U')) {
+            neww[j] = str[i];
+            j++;
+        }
+    }
+
+    neww[j] = '\0';   
+
+    printf("%s", neww);
+    return 0;
+}
