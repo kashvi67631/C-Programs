@@ -1,0 +1,29 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int n;
+    printf("Enter the length of the array: ");
+    scanf("%d", &n);
+
+    int *arr = (int*)malloc(sizeof(int) * n);
+
+    for (int i = 0; i < n; i++) {
+        printf("Enter element %d: ", i + 1);
+        scanf("%d", &arr[i]);
+    }
+
+    int lar1=0;
+    int lar2=0; // very small number
+
+    for (int i = 1; i < n; i++) {
+        if (arr[i] > lar1) {
+            lar1 = arr[i];
+        } 
+        if(arr[i]>lar2 && arr[i]!=lar1){
+            lar2=arr[i];
+        }
+        }
+        printf("\nThe largest element is %d",lar1);
+    printf("The second largest element of the array is %d",lar2);
+}
