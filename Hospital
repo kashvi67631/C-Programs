@@ -1,0 +1,188 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+#include <time.h>
+#include <stdlib.h>
+
+void addpat();
+void viewpat();
+void addoc();
+void viewdoc();
+void book();
+void view();
+
+struct patients {
+    char name[100], gender, disease[100], doctor[100];
+    int age, roomnumber;
+};
+
+struct doctors {
+    char name[100];
+    int id;
+    char spec[100];
+};
+
+struct appointment {
+    char patient[50];
+    char doctor[50];
+    char date[20];
+};
+
+int main() {
+    char ch;
+    printf("\t==== Hospital Management System ====\t");
+    printf("\nHow can we help you? Choose one:");
+    printf("\n1. Add Patient");
+    printf("\n2. View Patients");
+    printf("\n3. Add Doctors");
+    printf("\n4. View Doctors");
+    printf("\n5. Book Appointment");
+    printf("\n6. View Appointments");
+    printf("\n7. Exit\n");
+    scanf(" %c", &ch);
+
+    switch (ch) {
+        case '1': addpat(); break;
+        case '2': viewpat(); break;
+        case '3': addoc(); break;
+        case '4': viewdoc(); break;
+        case '5': book(); break;
+        case '6': view(); break;
+        case '7': printf("\nThank You For Visiting!\n"); break;
+        default: printf("\nInvalid Choice!\n");
+    }
+    return 0;
+}
+
+// -------------------- ADD PATIENT --------------------
+void addpat() {
+    FILE *fptr = fopen("patient.dat", "ab");
+    if (fptr == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    int n;
+    printf("\nEnter the number of patients to be added: ");
+    scanf("%d", &n);
+
+    struct patients *p = (struct patients*) malloc(n * sizeof(struct patients));
+
+    for (int i = 0; i < n; i++) {
+        printf("\nEnter the details of patient %d\n", i + 1);
+        printf("Name: "); scanf("%s", p[i].name);
+        printf("Gender (M/F): "); scanf(" %c", &p[i].gender);
+        printf("Age: "); scanf("%d", &p[i].age);
+        printf("Disease: "); scanf("%s", p[i].disease);
+        printf("Doctor: "); scanf("%s", p[i].doctor);
+        printf("Room number: "); scanf("%d", &p[i].roomnumber);
+
+        fwrite(&p[i], sizeof(struct patients), 1, fptr);
+    }
+
+    fclose(fptr);
+    free(p);
+}
+
+// -------------------- VIEW PATIENT --------------------
+void viewpat() {
+    FILE *fptr = fopen("patient.dat", "rb");
+    if (fptr == NULL) {
+        printf("No patient records found!\n");
+        return;
+    }
+
+    struct patients p;
+    while (fread(&p, sizeof(struct patients), 1, fptr)) {
+        printf("\nName: %s | Gender: %c | Age: %d | Disease: %s | Doctor: %s | Room: %d",
+               p.name, p.gender, p.age, p.disease, p.doctor, p.roomnumber);
+    }
+
+    fclose(fptr);
+}
+
+// -------------------- ADD DOCTOR --------------------
+void addoc() {
+    FILE *fptr = fopen("doctor.dat", "ab");
+    if (fptr == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    int n;
+    printf("\nEnter the number of doctors to be added: ");
+    scanf("%d", &n);
+
+    struct doctors *d = (struct doctors*) malloc(n * sizeof(struct doctors));
+
+    for (int i = 0; i < n; i++) {
+        printf("\nEnter the details of doctor %d\n", i + 1);
+        printf("Name: "); scanf("%s", d[i].name);
+        printf("ID: "); scanf("%d", &d[i].id);
+        printf("Specialization: "); scanf("%s", d[i].spec);
+
+        fwrite(&d[i], sizeof(struct doctors), 1, fptr);
+    }
+
+    fclose(fptr);
+    free(d);
+}
+
+// -------------------- VIEW DOCTOR --------------------
+void viewdoc() {
+    FILE *fptr = fopen("doctor.dat", "rb");
+    if (fptr == NULL) {
+        printf("No doctor records found!\n");
+        return;
+    }
+
+    struct doctors d;
+    while (fread(&d, sizeof(struct doctors), 1, fptr)) {
+        printf("\nName: %s | ID: %d | Specialization: %s", d.name, d.id, d.spec);
+    }
+
+    fclose(fptr);
+}
+
+// -------------------- BOOK APPOINTMENT --------------------
+void book() {
+    FILE *fa = fopen("appointment.dat", "ab");
+    if (fa == NULL) {
+        printf("Error opening file!\n");
+        return;
+    }
+
+    int n;
+    printf("\nEnter the number of appointments to add: ");
+    scanf("%d", &n);
+
+    struct appointment *a = (struct appointment*) malloc(n * sizeof(struct appointment));
+
+    for (int i = 0; i < n; i++) {
+        printf("\nEnter details of appointment %d\n", i + 1);
+        printf("Doctor: "); scanf("%s", a[i].doctor);
+        printf("Patient: "); scanf("%s", a[i].patient);
+        printf("Date (DD-MM-YY): "); scanf("%s", a[i].date);
+
+        fwrite(&a[i], sizeof(struct appointment), 1, fa);
+    }
+
+    fclose(fa);
+    free(a);
+}
+
+// -------------------- VIEW APPOINTMENTS --------------------
+void view() {
+    FILE *fptr = fopen("appointment.dat", "rb");
+    if (fptr == NULL) {
+        printf("No appointments found!\n");
+        return;
+    }
+
+    struct appointment a;
+    while (fread(&a, sizeof(struct appointment), 1, fptr)) {
+        printf("\nPatient: %s | Doctor: %s | Date: %s", a.patient, a.doctor, a.date);
+    }
+
+    fclose(fptr);
+}
