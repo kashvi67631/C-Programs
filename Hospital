@@ -53,8 +53,6 @@ int main() {
     }
     return 0;
 }
-
-// -------------------- ADD PATIENT --------------------
 void addpat() {
     FILE *fptr = fopen("patient.dat", "ab");
     if (fptr == NULL) {
@@ -83,8 +81,6 @@ void addpat() {
     fclose(fptr);
     free(p);
 }
-
-// -------------------- VIEW PATIENT --------------------
 void viewpat() {
     FILE *fptr = fopen("patient.dat", "rb");
     if (fptr == NULL) {
@@ -100,8 +96,6 @@ void viewpat() {
 
     fclose(fptr);
 }
-
-// -------------------- ADD DOCTOR --------------------
 void addoc() {
     FILE *fptr = fopen("doctor.dat", "ab");
     if (fptr == NULL) {
@@ -127,8 +121,6 @@ void addoc() {
     fclose(fptr);
     free(d);
 }
-
-// -------------------- VIEW DOCTOR --------------------
 void viewdoc() {
     FILE *fptr = fopen("doctor.dat", "rb");
     if (fptr == NULL) {
@@ -144,7 +136,6 @@ void viewdoc() {
     fclose(fptr);
 }
 
-// -------------------- BOOK APPOINTMENT --------------------
 void book() {
     FILE *fa = fopen("appointment.dat", "ab");
     if (fa == NULL) {
@@ -171,7 +162,6 @@ void book() {
     free(a);
 }
 
-// -------------------- VIEW APPOINTMENTS --------------------
 void view() {
     FILE *fptr = fopen("appointment.dat", "rb");
     if (fptr == NULL) {
