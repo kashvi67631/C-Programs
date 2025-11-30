@@ -1,0 +1,570 @@
+/* Hospital Patient Record Management System
+   Files used:
+     - doctors.dat         (binary)
+     - patients.dat        (binary)
+     - appointments.dat    (binary)
+     - hospital_log.txt    (text)
+     - bills.txt           (text)
+     - admins.dat          (binary) -> stores admin username/password (created on first run)
+     - notes_<patientname>.txt (text) -> medical notes per patient
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define ADMIN_FILE "admins.dat"
+#define DOCTOR_FILE "doctors.dat"
+#define PATIENT_FILE "patients.dat"
+#define APPOINT_FILE "appointments.dat"
+#define LOG_FILE "hospital_log.txt"
+#define BILLS_FILE "bills.txt"
+
+typedef struct {
+    char name[100];
+    int id;
+    char spec[100];
+} Doctor;
+
+typedef struct {
+    char name[100];
+    char gender;
+    int age;
+    char disease[200];
+    char doctor[100];
+    int roomnumber;
+    int discharged; // 0 = active, 1 = discharged
+} Patient;
+
+typedef struct {
+    char patient[100];
+    char doctor[100];
+    char date[20];
+} Appointment;
+
+typedef struct {
+    char username[50];
+    char password[50];
+} Admin;
+
+// safe input helpers
+void get_string(char *buf, int size) {
+    if (fgets(buf, size, stdin) == NULL) {
+        buf[0] = '\0';
+        return;
+    }
+    buf[strcspn(buf, "\n")] = 0;
+}
+
+int get_choice_char() {
+    char c = getchar();
+    while (getchar() != '\n'); // clear buffer
+    return c;
+}
+
+void pause_and_clear() {
+    printf("\nPress Enter to continue...");
+    getchar();
+}
+
+// utility: current timestamp string
+void now_str(char *buf, int n) {
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    strftime(buf, n, "%d-%m-%Y %H:%M:%S", tm);
+}
+
+/* ---------- Admin functions ---------- */
+
+int admin_exists() {
+    FILE *f = fopen(ADMIN_FILE, "rb");
+    if (!f) return 0;
+    fclose(f);
+    return 1;
+}
+
+void create_admin_first_time() {
+    if (admin_exists()) return;
+    printf("No admin found. Create admin account now.\n");
+    Admin a;
+    printf("Admin username: ");
+    get_string(a.username, sizeof(a.username));
+    printf("Admin password: ");
+    get_string(a.password, sizeof(a.password));
+    FILE *f = fopen(ADMIN_FILE, "wb");
+    if (f) {
+        fwrite(&a, sizeof(Admin), 1, f);
+        fclose(f);
+        printf("Admin created.\n");
+    }
+}
+
+int admin_login() {
+    if (!admin_exists()) {
+        create_admin_first_time();
+    }
+    Admin a;
+    FILE *f = fopen(ADMIN_FILE, "rb");
+    if (!f) {
+        printf("Unable to read admin file.\n");
+        return 0;
+    }
+    fread(&a, sizeof(Admin), 1, f);
+    fclose(f);
+
+    char u[50], p[50];
+    printf("Username: ");
+    get_string(u, sizeof(u));
+    printf("Password: ");
+    get_string(p, sizeof(p));
+
+    if (strcmp(u, a.username) == 0 && strcmp(p, a.password) == 0) return 1;
+    return 0;
+}
+
+/* ---------- Doctor functions ---------- */
+
+int next_doctor_id() {
+    FILE *f = fopen(DOCTOR_FILE, "rb");
+    if (!f) return 1;
+    Doctor d;
+    int max = 0;
+    while (fread(&d, sizeof(Doctor), 1, f)) {
+        if (d.id > max) max = d.id;
+    }
+    fclose(f);
+    return max + 1;
+}
+
+void add_doctor() {
+    FILE *f = fopen(DOCTOR_FILE, "ab");
+    if (!f) {
+        printf("Error opening doctors file.\n");
+        return;
+    }
+    Doctor d;
+    printf("Doctor name: ");
+    get_string(d.name, sizeof(d.name));
+    d.id = next_doctor_id();
+    printf("Assigned ID: %d\n", d.id);
+    printf("Specialization: ");
+    get_string(d.spec, sizeof(d.spec));
+    fwrite(&d, sizeof(Doctor), 1, f);
+    fclose(f);
+    printf("Doctor added successfully.\n");
+}
+
+void view_doctors() {
+    FILE *f = fopen(DOCTOR_FILE, "rb");
+    if (!f) {
+        printf("No doctors found.\n");
+        return;
+    }
+    Doctor d;
+    printf("\n--- Doctors List ---\n");
+    while (fread(&d, sizeof(Doctor), 1, f)) {
+        printf("ID: %d | Name: %s | Spec: %s\n", d.id, d.name, d.spec);
+    }
+    fclose(f);
+}
+
+void edit_doctor() {
+    FILE *f = fopen(DOCTOR_FILE, "rb+");
+    if (!f) {
+        printf("No doctors to edit.\n");
+        return;
+    }
+    int id;
+    printf("Enter doctor ID to edit: ");
+    if (scanf("%d", &id) != 1) { while(getchar()!='\n'); return; }
+    getchar();
+    Doctor d;
+    int found = 0;
+    long pos;
+    while (!found && fread(&d, sizeof(Doctor), 1, f)) {
+        if (d.id == id) {
+            found = 1;
+            pos = ftell(f) - sizeof(Doctor);
+            printf("Editing doctor: %s (ID %d)\n", d.name, d.id);
+            printf("New name (leave blank to keep): ");
+            char tmp[100]; get_string(tmp,sizeof(tmp));
+            if (strlen(tmp)) strncpy(d.name, tmp, sizeof(d.name));
+            printf("New specialization (leave blank to keep): ");
+            get_string(tmp,sizeof(tmp));
+            if (strlen(tmp)) strncpy(d.spec, tmp, sizeof(d.spec));
+            fseek(f, pos, SEEK_SET);
+            fwrite(&d, sizeof(Doctor), 1, f);
+            printf("Doctor updated.\n");
+            break;
+        }
+    }
+    if (!found) printf("Doctor ID not found.\n");
+    fclose(f);
+}
+
+void delete_doctor() {
+    FILE *f = fopen(DOCTOR_FILE, "rb");
+    if (!f) { printf("No doctors.\n"); return; }
+    FILE *tmp = fopen("tmp_doctors.dat", "wb");
+    Doctor d;
+    int id;
+    printf("Enter doctor ID to delete: ");
+    if (scanf("%d", &id) != 1) { while(getchar()!='\n'); fclose(f); fclose(tmp); return; }
+    getchar();
+    int found = 0;
+    while (fread(&d, sizeof(Doctor), 1, f)) {
+        if (d.id == id) { found = 1; continue; }
+        fwrite(&d, sizeof(Doctor), 1, tmp);
+    }
+    fclose(f); fclose(tmp);
+    if (found) {
+        remove(DOCTOR_FILE);
+        rename("tmp_doctors.dat", DOCTOR_FILE);
+        printf("Doctor deleted.\n");
+    } else {
+        remove("tmp_doctors.dat");
+        printf("Doctor ID not found.\n");
+    }
+}
+
+/* ---------- Patient functions ---------- */
+
+void register_patient() {
+    FILE *f = fopen(PATIENT_FILE, "ab");
+    if (!f) {
+        printf("Error opening patient file.\n");
+        return;
+    }
+    Patient p;
+    printf("Patient name: "); get_string(p.name, sizeof(p.name));
+    printf("Gender (M/F): "); p.gender = getchar(); while(getchar()!='\n');
+    printf("Age: "); scanf("%d", &p.age); while(getchar()!='\n');
+    printf("Disease/Complaint: "); get_string(p.disease, sizeof(p.disease));
+    printf("Room number: "); scanf("%d", &p.roomnumber); while(getchar()!='\n');
+    p.discharged = 0;
+
+    // assign doctor by specialty
+    printf("Assign doctor automatically by specialization? (y/n): ");
+    char c = getchar(); while(getchar()!='\n');
+    if (c == 'y' || c == 'Y') {
+        char spec[100];
+        printf("Enter required specialization (e.g. Cardiology): ");
+        get_string(spec, sizeof(spec));
+        // search doctors with matching spec
+        FILE *fd = fopen(DOCTOR_FILE, "rb");
+        if (!fd) {
+            printf("No doctors available. Leave doctor blank.\n");
+            strcpy(p.doctor, "Not Assigned");
+        } else {
+            Doctor d;
+            int found = 0;
+            while (fread(&d, sizeof(Doctor), 1, fd)) {
+                if (strcasestr(d.spec, spec) != NULL) {
+                    // assign first matching doctor
+                    strncpy(p.doctor, d.name, sizeof(p.doctor));
+                    found = 1;
+                    break;
+                }
+            }
+            fclose(fd);
+            if (!found) strcpy(p.doctor, "Not Assigned");
+        }
+    } else {
+        printf("Enter doctor name to assign (or leave blank): ");
+        get_string(p.doctor, sizeof(p.doctor));
+        if (strlen(p.doctor) == 0) strcpy(p.doctor, "Not Assigned");
+    }
+
+    fwrite(&p, sizeof(Patient), 1, f);
+    fclose(f);
+
+    // create/append a notes file for this patient
+    char notesfile[200];
+    snprintf(notesfile, sizeof(notesfile), "notes_%s.txt", p.name);
+    FILE *nf = fopen(notesfile, "a");
+    if (nf) {
+        char ts[30]; now_str(ts, sizeof(ts));
+        fprintf(nf, "Registered on %s\n", ts);
+        fprintf(nf, "Initial complaint: %s\n\n", p.disease);
+        fclose(nf);
+    }
+
+    printf("Patient registered successfully.\n");
+}
+
+void view_patients() {
+    FILE *f = fopen(PATIENT_FILE, "rb");
+    if (!f) { printf("No patients found.\n"); return; }
+    Patient p;
+    printf("\n--- Patients List ---\n");
+    int idx=1;
+    while (fread(&p, sizeof(Patient), 1, f)) {
+        if (p.discharged) continue;
+        printf("%d) Name: %s | Gender: %c | Age: %d | Disease: %s | Doctor: %s | Room: %d\n",
+               idx++, p.name, p.gender, p.age, p.disease, p.doctor, p.roomnumber);
+    }
+    fclose(f);
+}
+
+void add_medical_notes() {
+    char pname[100];
+    printf("Enter patient name to add notes: ");
+    get_string(pname, sizeof(pname));
+    // ensure patient exists
+    FILE *f = fopen(PATIENT_FILE, "rb");
+    if (!f) { printf("No patients.\n"); return; }
+    Patient p; int found=0;
+    while (fread(&p, sizeof(Patient), 1, f)) {
+        if (strcasecmp(p.name, pname) == 0) { found = 1; break; }
+    }
+    fclose(f);
+    if (!found) { printf("Patient not found.\n"); return; }
+
+    char notesfile[200];
+    snprintf(notesfile, sizeof(notesfile), "notes_%s.txt", pname);
+    FILE *nf = fopen(notesfile, "a");
+    if (!nf) { printf("Unable to open notes file.\n"); return; }
+    char note[500];
+    printf("Enter notes (single line): ");
+    get_string(note, sizeof(note));
+    char ts[30]; now_str(ts, sizeof(ts));
+    fprintf(nf, "[%s] %s\n", ts, note);
+    fclose(nf);
+    printf("Note added.\n");
+}
+
+void generate_bill_and_save(Patient *p) {
+    // Simple example billing: base + age surcharge + room charge
+    double base = 500.0;
+    double age_surcharge = (p->age > 60) ? 300.0 : 0.0;
+    double room_charge = 200.0; // per day, assume 1 day for simplicity
+    double total = base + age_surcharge + room_charge;
+
+    FILE *bf = fopen(BILLS_FILE, "a");
+    if (bf) {
+        char ts[30]; now_str(ts, sizeof(ts));
+        fprintf(bf, "Bill for %s | Doctor: %s | Room: %d | Date: %s | Amount: %.2f\n",
+                p->name, p->doctor, p->roomnumber, ts, total);
+        fclose(bf);
+    }
+
+    printf("Bill generated: Rs %.2f (saved to %s)\n", total, BILLS_FILE);
+}
+
+void discharge_patient() {
+    char pname[100];
+    printf("Enter patient name to discharge: ");
+    get_string(pname, sizeof(pname));
+    FILE *f = fopen(PATIENT_FILE, "rb");
+    if (!f) { printf("No patients.\n"); return; }
+    FILE *tmp = fopen("tmp_patients.dat", "wb");
+    if (!tmp) { fclose(f); printf("Error creating temp file.\n"); return; }
+
+    Patient p; int found = 0;
+    while (fread(&p, sizeof(Patient), 1, f)) {
+        if (!found && strcasecmp(p.name, pname) == 0 && !p.discharged) {
+            found = 1;
+            p.discharged = 1; // mark discharged
+            // write to log
+            FILE *logf = fopen(LOG_FILE, "a");
+            if (logf) {
+                char ts[30]; now_str(ts, sizeof(ts));
+                fprintf(logf, "Discharged: %s | Doctor: %s | Room: %d | Time: %s\n",
+                        p.name, p.doctor, p.roomnumber, ts);
+                fclose(logf);
+            }
+            generate_bill_and_save(&p);
+            // append a discharge note
+            char notesfile[200]; snprintf(notesfile, sizeof(notesfile), "notes_%s.txt", p.name);
+            FILE *nf = fopen(notesfile, "a");
+            if (nf) {
+                char ts[30]; now_str(ts, sizeof(ts));
+                fprintf(nf, "[%s] Discharged by system.\n\n", ts);
+                fclose(nf);
+            }
+        }
+        fwrite(&p, sizeof(Patient), 1, tmp);
+    }
+    fclose(f); fclose(tmp);
+    if (found) {
+        remove(PATIENT_FILE);
+        rename("tmp_patients.dat", PATIENT_FILE);
+        printf("Patient discharged and logged.\n");
+    } else {
+        remove("tmp_patients.dat");
+        printf("Patient not found or already discharged.\n");
+    }
+}
+
+/* ---------- Appointment functions ---------- */
+
+void book_appointment() {
+    Appointment a;
+    printf("Enter patient name: "); get_string(a.patient, sizeof(a.patient));
+    printf("Enter doctor name: "); get_string(a.doctor, sizeof(a.doctor));
+    printf("Enter date (DD-MM-YY): "); get_string(a.date, sizeof(a.date));
+    FILE *f = fopen(APPOINT_FILE, "ab");
+    if (!f) { printf("Unable to open appointments file.\n"); return; }
+    fwrite(&a, sizeof(Appointment), 1, f);
+    fclose(f);
+    printf("Appointment booked.\n");
+}
+
+void view_appointments() {
+    FILE *f = fopen(APPOINT_FILE, "rb");
+    if (!f) { printf("No appointments.\n"); return; }
+    Appointment a;
+    printf("\n--- Appointments ---\n");
+    while (fread(&a, sizeof(Appointment), 1, f)) {
+        printf("Patient: %s | Doctor: %s | Date: %s\n", a.patient, a.doctor, a.date);
+    }
+    fclose(f);
+}
+
+/* ---------- Search utilities ---------- */
+
+void search_patient_by_name() {
+    char pname[100];
+    printf("Enter patient name to search: ");
+    get_string(pname, sizeof(pname));
+    FILE *f = fopen(PATIENT_FILE, "rb");
+    if (!f) { printf("No patients.\n"); return; }
+    Patient p; int found=0;
+    while (fread(&p, sizeof(Patient), 1, f)) {
+        if (strcasecmp(p.name, pname) == 0) {
+            found = 1;
+            printf("Found: Name: %s | Gender: %c | Age: %d | Disease: %s | Doctor: %s | Room: %d | Discharged: %d\n",
+                   p.name, p.gender, p.age, p.disease, p.doctor, p.roomnumber, p.discharged);
+            break;
+        }
+    }
+    fclose(f);
+    if (!found) printf("Patient not found.\n");
+}
+
+void search_doctor_by_spec() {
+    char spec[100];
+    printf("Enter specialization to search: ");
+    get_string(spec, sizeof(spec));
+    FILE *f = fopen(DOCTOR_FILE, "rb");
+    if (!f) { printf("No doctors.\n"); return; }
+    Doctor d; int found=0;
+    while (fread(&d, sizeof(Doctor), 1, f)) {
+        if (strcasestr(d.spec, spec) != NULL) {
+            found = 1;
+            printf("ID: %d | Name: %s | Spec: %s\n", d.id, d.name, d.spec);
+        }
+    }
+    fclose(f);
+    if (!found) printf("No doctor with that specialization.\n");
+}
+
+/* ---------- Initialization ---------- */
+
+void ensure_files_exist() {
+    FILE *f;
+    f = fopen(DOCTOR_FILE, "ab"); if (f) fclose(f);
+    f = fopen(PATIENT_FILE, "ab"); if (f) fclose(f);
+    f = fopen(APPOINT_FILE, "ab"); if (f) fclose(f);
+    f = fopen(LOG_FILE, "a"); if (f) fclose(f);
+    f = fopen(BILLS_FILE, "a"); if (f) fclose(f);
+}
+
+/* ---------- Menu ---------- */
+
+void admin_menu() {
+    while (1) {
+        printf("\n--- ADMIN MENU ---\n");
+        printf("1. Add doctor\n");
+        printf("2. View doctors\n");
+        printf("3. Edit doctor\n");
+        printf("4. Delete doctor\n");
+        printf("5. View patients\n");
+        printf("6. Search patient\n");
+        printf("7. View appointments\n");
+        printf("8. View logs\n");
+        printf("9. Logout\n");
+        printf("Choose: ");
+        char c = getchar(); while(getchar()!='\n');
+        switch (c) {
+            case '1': add_doctor(); break;
+            case '2': view_doctors(); break;
+            case '3': edit_doctor(); break;
+            case '4': delete_doctor(); break;
+            case '5': view_patients(); break;
+            case '6': search_patient_by_name(); break;
+            case '7': view_appointments(); break;
+            case '8': {
+                FILE *lf = fopen(LOG_FILE, "r");
+                if (!lf) { printf("No logs.\n"); break; }
+                char line[512];
+                printf("\n--- Hospital Log ---\n");
+                while (fgets(line, sizeof(line), lf)) printf("%s", line);
+                fclose(lf);
+            } break;
+            case '9': return;
+            default: printf("Invalid.\n");
+        }
+        pause_and_clear();
+    }
+}
+
+void user_menu() {
+    while (1) {
+        printf("\n--- USER MENU ---\n");
+        printf("1. Register patient\n");
+        printf("2. View patients\n");
+        printf("3. Add medical notes\n");
+        printf("4. Discharge patient\n");
+        printf("5. Book appointment\n");
+        printf("6. View appointments\n");
+        printf("7. Search doctor by specialization\n");
+        printf("8. Back to main\n");
+        printf("Choose: ");
+        char c = getchar(); while(getchar()!='\n');
+        switch (c) {
+            case '1': register_patient(); break;
+            case '2': view_patients(); break;
+            case '3': add_medical_notes(); break;
+            case '4': discharge_patient(); break;
+            case '5': book_appointment(); break;
+            case '6': view_appointments(); break;
+            case '7': search_doctor_by_spec(); break;
+            case '8': return;
+            default: printf("Invalid.\n");
+        }
+        pause_and_clear();
+    }
+}
+
+int main() {
+    ensure_files_exist();
+    create_admin_first_time();
+
+    while (1) {
+        printf("\n=== HOSPITAL PATIENT RECORD SYSTEM ===\n");
+        printf("1. Admin Login\n");
+        printf("2. User Menu\n");
+        printf("3. Exit\n");
+        printf("Choose: ");
+        char c = getchar(); while(getchar()!='\n');
+        if (c == '1') {
+            printf("Admin Login\n");
+            if (admin_login()) {
+                printf("Welcome Admin.\n");
+                admin_menu();
+            } else {
+                printf("Login failed.\n");
+            }
+        } else if (c == '2') {
+            user_menu();
+        } else if (c == '3') {
+            printf("Exiting. Bye!\n");
+            break;
+        } else {
+            printf("Invalid choice.\n");
+        }
+    }
+    return 0;
+}
